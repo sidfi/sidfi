@@ -17,7 +17,7 @@
 #define nsleep(ns)                                                             \
   {                                                                            \
     uint32_t c =                                                               \
-        ReadCoreTimer() + (((uint32_t)(ns)-500) / (2000000000 / CLOCKFREQ));   \
+        ReadCoreTimer() + (((uint32_t)(ns)) / (2000000000 / CLOCKFREQ));       \
     while (ReadCoreTimer() < c)                                                \
       ;                                                                        \
   }
@@ -62,17 +62,13 @@ static uint16_t memory_virtual_to_physical(uint16_t address) {
 }
 
 void mos6581_write(uint8_t address, uint8_t data) {
-  SPI2BUF = address;
-  while (SPI2STATbits.SPITBF)
-    ;
-
-  SPI2BUF = data;
+  SPI2BUF = address << 8 | data;
   while (SPI2STATbits.SPIBUSY)
     ;
 
-  _LATB2 = 1;
-  nsleep(5000);
   _LATB2 = 0;
+  nsleep(5000);
+  _LATB2 = 1;
 }
 
 void memory_write(uint16_t address, uint8_t data) {
@@ -298,20 +294,20 @@ int main() {
   mT4ClearIntFlag();
   mT4IntEnable(1);
 
-  _TRISB2 = 0;              // MOS 6581 CS  (6)
-  PPSOutput(3, RPA4, SDO2); // MOS 6581 SDO (12)
-                            // MOS 6581 SCK (26)
+  _TRISB2 = 0; _LATB2 = 1;   // MOS 6581 CS  (6)
+  PPSOutput(3, RPA4, SDO2);  // MOS 6581 SDO (12)
+                             // MOS 6581 SCK (26)
 
   SpiChnOpen(SPI_CHANNEL2,
-             (SpiOpenFlags)(SPI_OPEN_MODE8 | SPI_OPEN_MSTEN | SPI_OPEN_DISSDI),
-             50);
+             (SpiOpenFlags)(SPI_OPEN_MODE16 | SPI_OPEN_MSTEN | SPI_OPEN_DISSDI |
+                            SPI_OPEN_CKE_REV),
+             5);
 
-  _TRISB13 = 0;
-  _LATB13 = 1;              // SD CARD CS  (24)
-  _TRISB11 = 1;             // SD CARD CD  (22)
-  PPSOutput(2, RPB5, SDO1); // SD CARD SDO (14)
-  PPSInput(2, SDI1, RPB8);  // SD CARD SDI (17)
-                            // SD CARD SCK (25)
+  _TRISB13 = 0; _LATB13 = 1; // SD CARD CS  (24)
+  _TRISB11 = 1;              // SD CARD CD  (22)
+  PPSOutput(2, RPB5, SDO1);  // SD CARD SDO (14)
+  PPSInput(2, SDI1, RPB8);   // SD CARD SDI (17)
+                             // SD CARD SCK (25)
 
   SpiChnOpen(SPI_CHANNEL1,
              (SpiOpenFlags)(SPI_OPEN_MODE8 | SPI_OPEN_MSTEN | SPI_OPEN_CKE_REV),
@@ -330,7 +326,7 @@ int main() {
     halt();
 
   struct sid sid;
-  int sidr = sid_read_file(&sid, "R-Type.sid");
+  int sidr = sid_read_file(&sid, "MUSICIANS/T/Taki/Prince_of_Persia_1.sid");
   if (sidr != SIDFILE_OK)
     halt();
 
@@ -343,8 +339,7 @@ int main() {
   cpu.Run(100000);
 
   while (1) {
-    uint32_t c = ReadCoreTimer() + (sid_song_speed_ns(&sid, song_number) /
-                                    (2000000000 / CLOCKFREQ));
+    WriteCoreTimer(0);
 
     // trigger IRQ interrupt
     cpu.IRQ();
@@ -352,6 +347,8 @@ int main() {
     // execute the player routine
     cpu.Run(0);
 
+    uint32_t c =
+        (sid_song_speed_ns(&sid, song_number) / (2000000000 / CLOCKFREQ));
     while (ReadCoreTimer() < c)
       ;
   }

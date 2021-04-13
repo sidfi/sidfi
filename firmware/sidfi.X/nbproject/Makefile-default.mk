@@ -57,17 +57,17 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Source Files Quoted if spaced
-SOURCEFILES_QUOTED_IF_SPACED=diskio.c ff.c ffunicode.c main.cpp mos6502.cpp
+SOURCEFILES_QUOTED_IF_SPACED=diskio.c ff.c ffunicode.c main.cpp mos6502.cpp fonts.c gfx.c st7735s.c st7735s_compat.c
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/diskio.o ${OBJECTDIR}/ff.o ${OBJECTDIR}/ffunicode.o ${OBJECTDIR}/main.o ${OBJECTDIR}/mos6502.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/diskio.o.d ${OBJECTDIR}/ff.o.d ${OBJECTDIR}/ffunicode.o.d ${OBJECTDIR}/main.o.d ${OBJECTDIR}/mos6502.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/diskio.o ${OBJECTDIR}/ff.o ${OBJECTDIR}/ffunicode.o ${OBJECTDIR}/main.o ${OBJECTDIR}/mos6502.o ${OBJECTDIR}/fonts.o ${OBJECTDIR}/gfx.o ${OBJECTDIR}/st7735s.o ${OBJECTDIR}/st7735s_compat.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/diskio.o.d ${OBJECTDIR}/ff.o.d ${OBJECTDIR}/ffunicode.o.d ${OBJECTDIR}/main.o.d ${OBJECTDIR}/mos6502.o.d ${OBJECTDIR}/fonts.o.d ${OBJECTDIR}/gfx.o.d ${OBJECTDIR}/st7735s.o.d ${OBJECTDIR}/st7735s_compat.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/diskio.o ${OBJECTDIR}/ff.o ${OBJECTDIR}/ffunicode.o ${OBJECTDIR}/main.o ${OBJECTDIR}/mos6502.o
+OBJECTFILES=${OBJECTDIR}/diskio.o ${OBJECTDIR}/ff.o ${OBJECTDIR}/ffunicode.o ${OBJECTDIR}/main.o ${OBJECTDIR}/mos6502.o ${OBJECTDIR}/fonts.o ${OBJECTDIR}/gfx.o ${OBJECTDIR}/st7735s.o ${OBJECTDIR}/st7735s_compat.o
 
 # Source Files
-SOURCEFILES=diskio.c ff.c ffunicode.c main.cpp mos6502.cpp
+SOURCEFILES=diskio.c ff.c ffunicode.c main.cpp mos6502.cpp fonts.c gfx.c st7735s.c st7735s_compat.c
 
 
 
@@ -125,6 +125,30 @@ ${OBJECTDIR}/ffunicode.o: ffunicode.c  .generated_files/9d667aad696412ca7bda3662
 	@${RM} ${OBJECTDIR}/ffunicode.o 
 	${MP_CPPC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG   -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/ffunicode.o.d" -o ${OBJECTDIR}/ffunicode.o ffunicode.c    -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)  -std=gnu99 -mdfp="${DFP_DIR}"  
 	
+${OBJECTDIR}/fonts.o: fonts.c  .generated_files/c9827a97e96ae1a452196821a12409c9ecaac6af.flag .generated_files/71b2fa7f85a22426d8b136d9a94b6b5776fdc3b0.flag
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/fonts.o.d 
+	@${RM} ${OBJECTDIR}/fonts.o 
+	${MP_CPPC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG   -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/fonts.o.d" -o ${OBJECTDIR}/fonts.o fonts.c    -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)  -std=gnu99 -mdfp="${DFP_DIR}"  
+	
+${OBJECTDIR}/gfx.o: gfx.c  .generated_files/a8b44a2f2bd0f8c42ef514a9c168eb047fc86e8c.flag .generated_files/71b2fa7f85a22426d8b136d9a94b6b5776fdc3b0.flag
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/gfx.o.d 
+	@${RM} ${OBJECTDIR}/gfx.o 
+	${MP_CPPC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG   -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/gfx.o.d" -o ${OBJECTDIR}/gfx.o gfx.c    -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)  -std=gnu99 -mdfp="${DFP_DIR}"  
+	
+${OBJECTDIR}/st7735s.o: st7735s.c  .generated_files/21058474b6d9af082d4d1517865ddfd96b9f8cf7.flag .generated_files/71b2fa7f85a22426d8b136d9a94b6b5776fdc3b0.flag
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/st7735s.o.d 
+	@${RM} ${OBJECTDIR}/st7735s.o 
+	${MP_CPPC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG   -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/st7735s.o.d" -o ${OBJECTDIR}/st7735s.o st7735s.c    -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)  -std=gnu99 -mdfp="${DFP_DIR}"  
+	
+${OBJECTDIR}/st7735s_compat.o: st7735s_compat.c  .generated_files/15334f7755060a9999879b8b423ab9191a776714.flag .generated_files/71b2fa7f85a22426d8b136d9a94b6b5776fdc3b0.flag
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/st7735s_compat.o.d 
+	@${RM} ${OBJECTDIR}/st7735s_compat.o 
+	${MP_CPPC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG   -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/st7735s_compat.o.d" -o ${OBJECTDIR}/st7735s_compat.o st7735s_compat.c    -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)  -std=gnu99 -mdfp="${DFP_DIR}"  
+	
 else
 ${OBJECTDIR}/diskio.o: diskio.c  .generated_files/2cf4e851fb833de05810aaf7165396a4703050b3.flag .generated_files/71b2fa7f85a22426d8b136d9a94b6b5776fdc3b0.flag
 	@${MKDIR} "${OBJECTDIR}" 
@@ -143,6 +167,30 @@ ${OBJECTDIR}/ffunicode.o: ffunicode.c  .generated_files/cb570459a3ce3d3dd6f33638
 	@${RM} ${OBJECTDIR}/ffunicode.o.d 
 	@${RM} ${OBJECTDIR}/ffunicode.o 
 	${MP_CPPC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/ffunicode.o.d" -o ${OBJECTDIR}/ffunicode.o ffunicode.c    -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)  -std=gnu99 -mdfp="${DFP_DIR}"  
+	
+${OBJECTDIR}/fonts.o: fonts.c  .generated_files/5422c96274e3003033be06a63eec9950d208954e.flag .generated_files/71b2fa7f85a22426d8b136d9a94b6b5776fdc3b0.flag
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/fonts.o.d 
+	@${RM} ${OBJECTDIR}/fonts.o 
+	${MP_CPPC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/fonts.o.d" -o ${OBJECTDIR}/fonts.o fonts.c    -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)  -std=gnu99 -mdfp="${DFP_DIR}"  
+	
+${OBJECTDIR}/gfx.o: gfx.c  .generated_files/c24fa7e8aafd520cdefd97bcaa9f405f9c0f07e2.flag .generated_files/71b2fa7f85a22426d8b136d9a94b6b5776fdc3b0.flag
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/gfx.o.d 
+	@${RM} ${OBJECTDIR}/gfx.o 
+	${MP_CPPC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/gfx.o.d" -o ${OBJECTDIR}/gfx.o gfx.c    -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)  -std=gnu99 -mdfp="${DFP_DIR}"  
+	
+${OBJECTDIR}/st7735s.o: st7735s.c  .generated_files/23c1e216519631f1cb1add142ec26e0c2646001d.flag .generated_files/71b2fa7f85a22426d8b136d9a94b6b5776fdc3b0.flag
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/st7735s.o.d 
+	@${RM} ${OBJECTDIR}/st7735s.o 
+	${MP_CPPC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/st7735s.o.d" -o ${OBJECTDIR}/st7735s.o st7735s.c    -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)  -std=gnu99 -mdfp="${DFP_DIR}"  
+	
+${OBJECTDIR}/st7735s_compat.o: st7735s_compat.c  .generated_files/aef7b293735795997aef262270547d62fb49d0d5.flag .generated_files/71b2fa7f85a22426d8b136d9a94b6b5776fdc3b0.flag
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/st7735s_compat.o.d 
+	@${RM} ${OBJECTDIR}/st7735s_compat.o 
+	${MP_CPPC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/st7735s_compat.o.d" -o ${OBJECTDIR}/st7735s_compat.o st7735s_compat.c    -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)  -std=gnu99 -mdfp="${DFP_DIR}"  
 	
 endif
 
@@ -181,12 +229,12 @@ endif
 ifeq ($(TYPE_IMAGE), DEBUG_RUN)
 dist/${CND_CONF}/${IMAGE_TYPE}/sidfi.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES}  nbproject/Makefile-${CND_CONF}.mk    
 	@${MKDIR} dist/${CND_CONF}/${IMAGE_TYPE} 
-	${MP_CPPC} $(MP_EXTRA_LD_PRE) -g   -mprocessor=$(MP_PROCESSOR_OPTION)  -o dist/${CND_CONF}/${IMAGE_TYPE}/sidfi.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX} ${OBJECTFILES_QUOTED_IF_SPACED}          -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)   -mreserve=data@0x0:0x1FC -mreserve=boot@0x1FC00490:0x1FC00BEF  -Wl,--defsym=__MPLAB_BUILD=1$(MP_EXTRA_LD_POST)$(MP_LINKER_FILE_OPTION),--defsym=__MPLAB_DEBUG=1,--defsym=__DEBUG=1,-D=__DEBUG_D,--no-code-in-dinit,--no-dinit-in-serial-mem,-Map="${DISTDIR}/${PROJECTNAME}.${IMAGE_TYPE}.map",--memorysummary,dist/${CND_CONF}/${IMAGE_TYPE}/memoryfile.xml -mdfp="${DFP_DIR}"
+	${MP_CPPC} $(MP_EXTRA_LD_PRE) -g   -mprocessor=$(MP_PROCESSOR_OPTION)  -o dist/${CND_CONF}/${IMAGE_TYPE}/sidfi.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX} ${OBJECTFILES_QUOTED_IF_SPACED}          -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)   -mreserve=data@0x0:0x1FC -mreserve=boot@0x1FC00490:0x1FC00BEF  -Wl,--defsym=__MPLAB_BUILD=1$(MP_EXTRA_LD_POST)$(MP_LINKER_FILE_OPTION),--defsym=__MPLAB_DEBUG=1,--defsym=__DEBUG=1,-D=__DEBUG_D,--defsym=_min_stack_size=1024,--no-code-in-dinit,--no-dinit-in-serial-mem,-Map="${DISTDIR}/${PROJECTNAME}.${IMAGE_TYPE}.map",--memorysummary,dist/${CND_CONF}/${IMAGE_TYPE}/memoryfile.xml,--allow-multiple-definition -mdfp="${DFP_DIR}"
 	
 else
 dist/${CND_CONF}/${IMAGE_TYPE}/sidfi.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES}  nbproject/Makefile-${CND_CONF}.mk   
 	@${MKDIR} dist/${CND_CONF}/${IMAGE_TYPE} 
-	${MP_CPPC} $(MP_EXTRA_LD_PRE)  -mprocessor=$(MP_PROCESSOR_OPTION)  -o dist/${CND_CONF}/${IMAGE_TYPE}/sidfi.X.${IMAGE_TYPE}.${DEBUGGABLE_SUFFIX} ${OBJECTFILES_QUOTED_IF_SPACED}          -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)  -Wl,--defsym=__MPLAB_BUILD=1$(MP_EXTRA_LD_POST)$(MP_LINKER_FILE_OPTION),--no-code-in-dinit,--no-dinit-in-serial-mem,-Map="${DISTDIR}/${PROJECTNAME}.${IMAGE_TYPE}.map",--memorysummary,dist/${CND_CONF}/${IMAGE_TYPE}/memoryfile.xml -mdfp="${DFP_DIR}"
+	${MP_CPPC} $(MP_EXTRA_LD_PRE)  -mprocessor=$(MP_PROCESSOR_OPTION)  -o dist/${CND_CONF}/${IMAGE_TYPE}/sidfi.X.${IMAGE_TYPE}.${DEBUGGABLE_SUFFIX} ${OBJECTFILES_QUOTED_IF_SPACED}          -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)  -Wl,--defsym=__MPLAB_BUILD=1$(MP_EXTRA_LD_POST)$(MP_LINKER_FILE_OPTION),--defsym=_min_stack_size=1024,--no-code-in-dinit,--no-dinit-in-serial-mem,-Map="${DISTDIR}/${PROJECTNAME}.${IMAGE_TYPE}.map",--memorysummary,dist/${CND_CONF}/${IMAGE_TYPE}/memoryfile.xml,--allow-multiple-definition -mdfp="${DFP_DIR}"
 	${MP_CC_DIR}/xc32-bin2hex dist/${CND_CONF}/${IMAGE_TYPE}/sidfi.X.${IMAGE_TYPE}.${DEBUGGABLE_SUFFIX} 
 endif
 

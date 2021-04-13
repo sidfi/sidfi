@@ -9,6 +9,9 @@
 
 #include "diskio.h"
 #include "ff.h"
+#include "st7735s.h"
+#include "fonts.h"
+#include "gfx.h"
 #include "mos6502.h"
 
 #define CLOCKFREQ (50000000ul)  // This is set in in Configuration Bits.h
@@ -46,23 +49,45 @@ void memory_init() {
     memory_page_table[i] = MEMORY_UNALLOCATED_PAGE_NUMBER;
 }
 
-static uint16_t memory_virtual_to_physical(uint16_t address) {
-  size_t i = address >> MEMORY_PAGE_BITS;
+static bool memory_virtual_to_physical(uint16_t v_address,
+                                       uint16_t *p_address) {
+  size_t i = v_address >> MEMORY_PAGE_BITS;
   size_t p = memory_page_table[i];
 
   if (p == MEMORY_UNALLOCATED_PAGE_NUMBER) {
     if (memory_free_page == MEMORY_PHYSICAL_PAGE_NUMBER)
-      halt();
+      return false;
 
     memory_page_table[i] = p = memory_free_page;
     memory_free_page++;
   }
 
-  return (p << MEMORY_PAGE_BITS) | (address & MEMORY_PAGE_MASK);
+  *p_address =
+      (p << MEMORY_PAGE_BITS) | (v_address & MEMORY_PAGE_MASK);
+  return true;
 }
 
-void mos6581_write(uint8_t address, uint8_t data) {
-  SPI2BUF = address << 8 | data;
+inline bool memory_write(uint16_t address, uint8_t data) {
+  bool res = memory_virtual_to_physical(address, &address);
+  memory[address] = data;
+  return res;
+}
+
+inline uint8_t memory_read(uint16_t address) {
+  bool res = memory_virtual_to_physical(address, &address);
+  return res ? memory[address] : 0;
+}
+
+inline bool is_mos6581_address(uint16_t address) {
+  return address >= 0xD400 && address < 0xD800;
+}
+
+static void mos6581_write(uint8_t address, uint8_t data) {
+  SPI2BUF = address;
+  while (SPI2STATbits.SPIBUSY)
+    ;
+
+  SPI2BUF = data;
   while (SPI2STATbits.SPIBUSY)
     ;
 
@@ -71,20 +96,20 @@ void mos6581_write(uint8_t address, uint8_t data) {
   _LATB2 = 1;
 }
 
-void memory_write(uint16_t address, uint8_t data) {
-  if (address >= 0xD400 && address < 0xD800) {
+void mos6581_memory_write(uint16_t address, uint8_t data) {
+  if (is_mos6581_address(address)) {
     mos6581_write(address & 0x1f, data);
   } else {
-    memory[memory_virtual_to_physical(address)] = data;
+    memory_write(address, data);
   }
 }
 
-uint8_t memory_read(uint16_t address) {
-  if (address >= 0xD400 && address < 0xD800) {
+uint8_t mos6581_memory_read(uint16_t address) {
+  if (is_mos6581_address(address)) {
     return 0;
   }
 
-  return memory[memory_virtual_to_physical(address)];
+  return memory_read(address);
 }
 
 #define PSID_MIN_HEADER_LENGTH 118 // Version 1
@@ -110,7 +135,12 @@ enum {
 
 #define SIDFILE_READ_BUFFER_SIZE 1024
 
-enum { SIDFILE_OK, SIDFILE_ERROR_FILENOTFOUND, SIDFILE_ERROR_MALFORMED };
+enum {
+  SIDFILE_OK,
+  SIDFILE_ERROR_FILENOTFOUND,
+  SIDFILE_ERROR_MALFORMED,
+  SIDFILE_ERROR_TOOBIG
+};
 
 struct sid {
   const char *module_name;
@@ -139,6 +169,8 @@ static bool is_header(const uint8_t *data) {
   return magic_id == 0x50534944 && (version == 1 || version == 2);
 }
 
+uint8_t sid_header[PSID_MAX_HEADER_LENGTH];
+
 int sid_read_file(struct sid *sid, const TCHAR *path) {
   FIL f;
   FRESULT fr = f_open(&f, path, FA_READ);
@@ -146,22 +178,21 @@ int sid_read_file(struct sid *sid, const TCHAR *path) {
     return SIDFILE_ERROR_FILENOTFOUND;
   }
 
-  uint8_t header[PSID_MAX_HEADER_LENGTH];
   UINT read;
-  fr = f_read(&f, header, PSID_MAX_HEADER_LENGTH, &read);
+  fr = f_read(&f, sid_header, PSID_MAX_HEADER_LENGTH, &read);
 
-  if (fr != FR_OK || read < PSID_MIN_HEADER_LENGTH || !is_header(header)) {
+  if (fr != FR_OK || read < PSID_MIN_HEADER_LENGTH || !is_header(sid_header)) {
     f_close(&f);
     return SIDFILE_ERROR_MALFORMED;
   }
 
-  sid->num_of_songs = read_uint16(header, PSID_NUMBER);
+  sid->num_of_songs = read_uint16(sid_header, PSID_NUMBER);
 
   if (sid->num_of_songs == 0) {
     sid->num_of_songs = 1;
   }
 
-  sid->first_song = read_uint16(header, PSID_DEFSONG);
+  sid->first_song = read_uint16(sid_header, PSID_DEFSONG);
   if (sid->first_song) {
     sid->first_song--;
   }
@@ -169,15 +200,15 @@ int sid_read_file(struct sid *sid, const TCHAR *path) {
     sid->first_song = 0;
   }
 
-  sid->init_address = read_uint16(header, PSID_INIT);
-  sid->play_address = read_uint16(header, PSID_PLAY);
-  sid->speed_flags = read_uint32(header, PSID_SPEED);
+  sid->init_address = read_uint16(sid_header, PSID_INIT);
+  sid->play_address = read_uint16(sid_header, PSID_PLAY);
+  sid->speed_flags = read_uint32(sid_header, PSID_SPEED);
 
-  sid->module_name = (const char *)(header + PSID_NAME);
-  sid->author_name = (const char *)(header + PSID_AUTHOR);
-  sid->copyright_info = (const char *)(header + PSID_COPYRIGHT);
+  sid->module_name = (const char *)(sid_header + PSID_NAME);
+  sid->author_name = (const char *)(sid_header + PSID_AUTHOR);
+  sid->copyright_info = (const char *)(sid_header + PSID_COPYRIGHT);
 
-  FSIZE_t dataOffset = read_uint16(header, PSID_LENGTH);
+  FSIZE_t dataOffset = read_uint16(sid_header, PSID_LENGTH);
   fr = f_lseek(&f, dataOffset);
 
   if (fr != FR_OK) {
@@ -187,7 +218,7 @@ int sid_read_file(struct sid *sid, const TCHAR *path) {
 
   // Find load address
 
-  sid->load_address = read_uint16(header, PSID_LOAD);
+  sid->load_address = read_uint16(sid_header, PSID_LOAD);
   if (sid->load_address == 0) {
     uint8_t lo, hi;
     fr = f_read(&f, &lo, 1, &read);
@@ -216,7 +247,8 @@ int sid_read_file(struct sid *sid, const TCHAR *path) {
     fr = f_read(&f, buffer, SIDFILE_READ_BUFFER_SIZE, &read);
 
     for (size_t i = 0; i < read; ++i) {
-      memory_write(address + i, buffer[i]);
+      if (!memory_write(address + i, buffer[i]))
+        return SIDFILE_ERROR_TOOBIG;
     }
 
     address += read;
@@ -275,6 +307,53 @@ extern "C" void __ISR(_TIMER_4_VECTOR, ipl1auto) T4Interrupt(void) {
   mT4ClearIntFlag();
 }
 
+unsigned int next_random() {
+ static unsigned int random = 0;
+ random += ReadCoreTimer();
+ return random;
+}
+
+FRESULT next_random_file_name(char *path) {
+  FRESULT res;
+  DIR dir;
+  FILINFO fno;
+
+  res = f_opendir(&dir, path); /* Open the directory */
+  if (res != FR_OK)
+    return res;
+  size_t c = 0;
+  do {
+    res = f_readdir(&dir, &fno);
+    if (res != FR_OK)
+      return res;
+    c++;
+  } while (fno.fname[0] != 0);
+
+  f_closedir(&dir);
+  res = f_opendir(&dir, path); /* Open the directory */
+  if (res != FR_OK)
+    return res;
+
+  size_t i = next_random() % c;
+  while (i--) {
+    res = f_readdir(&dir, &fno);
+    if (res != FR_OK)
+      return res;
+  }
+
+  size_t l = strlen(path);
+  char *next_path = &path[l];
+  next_path[0] = '/';
+  strcpy(&next_path[1], fno.fname);
+
+  f_closedir(&dir);
+
+  if (fno.fattrib & AM_DIR)
+    return next_random_file_name(path);
+
+  return res;
+}
+
 int main() {
   ANSELA = 0;
   ANSELB = 0;
@@ -295,13 +374,13 @@ int main() {
   mT4IntEnable(1);
 
   _TRISB2 = 0; _LATB2 = 1;   // MOS 6581 CS  (6)
-  PPSOutput(3, RPA4, SDO2);  // MOS 6581 SDO (12)
-                             // MOS 6581 SCK (26)
+  PPSOutput(3, RPA4, SDO2);  // MOS 6581 / LCD SDO (12)
+                             // MOS 6581 / LCD SCK (26)
 
   SpiChnOpen(SPI_CHANNEL2,
-             (SpiOpenFlags)(SPI_OPEN_MODE16 | SPI_OPEN_MSTEN | SPI_OPEN_DISSDI |
+             (SpiOpenFlags)(SPI_OPEN_MODE8 | SPI_OPEN_MSTEN | SPI_OPEN_DISSDI |
                             SPI_OPEN_CKE_REV),
-             5);
+             2);
 
   _TRISB13 = 0; _LATB13 = 1; // SD CARD CS  (24)
   _TRISB11 = 1;              // SD CARD CD  (22)
@@ -309,36 +388,76 @@ int main() {
   PPSInput(2, SDI1, RPB8);   // SD CARD SDI (17)
                              // SD CARD SCK (25)
 
+  _TRISB0 = 0; _LATB0 = 1;   // LCD CS (4)
+  _TRISB1 = 0; _LATB1 = 1;   // LCD DC (5)
+  _TRISB3 = 0; _LATB3 = 0;   // LCD RESET (7)
+  
   SpiChnOpen(SPI_CHANNEL1,
              (SpiOpenFlags)(SPI_OPEN_MODE8 | SPI_OPEN_MSTEN | SPI_OPEN_CKE_REV),
-             125);
+             50);
 
   INTEnableSystemMultiVectoredInt();
   INTEnableInterrupts();
 
   nsleep(1000000);
 
-  memory_init();
-
+  ST7735S_Init();
+  setOrientation(R0);
+  
   FATFS fs;
   FRESULT fr = f_mount(&fs, "", 0);
   if (fr != FR_OK)
     halt();
 
+  setbgColor(31, 63, 31);
+  setFont(ter_u16n);
+
   struct sid sid;
-  int sidr = sid_read_file(&sid, "MUSICIANS/T/Taki/Prince_of_Persia_1.sid");
-  if (sidr != SIDFILE_OK)
-    halt();
+  char path[256];
 
+  memory_init();
+  mos6502 cpu(mos6581_memory_read, mos6581_memory_write);
+  
+  uint32_t timer = 0;
   uint8_t song_number = 0;
-  sid_init_player(&sid, song_number);
-
-  mos6502 cpu(memory_read, memory_write);
-
-  cpu.Reset();
-  cpu.Run(100000);
 
   while (1) {
+    if (!timer) {
+      while (1) {
+        setColor(31, 63, 31);
+        fillScreen();
+
+        setColor(0, 63, 0);
+        drawText(0, 0, "Loading...");
+        flushBuffer();
+        
+        path[0] = 0;
+        fr = next_random_file_name(path);
+        if (fr != FR_OK)
+          continue;
+
+        int sidr = sid_read_file(&sid, path);
+        if (sidr == SIDFILE_OK) {
+          sid_init_player(&sid, song_number);
+
+          cpu.Reset();
+          cpu.Run(100000);
+          
+          setColor(0, 0, 31);
+          drawText(0, 0, path);
+          drawText(0, 16, sid.module_name);
+          drawText(0, 32, sid.author_name);
+          drawText(0, 48, sid.copyright_info);
+          flushBuffer();
+
+          timer = 10800;
+          break;
+        }
+      }
+
+    } else
+      timer--;
+
     WriteCoreTimer(0);
 
     // trigger IRQ interrupt
@@ -346,6 +465,8 @@ int main() {
 
     // execute the player routine
     cpu.Run(0);
+    
+    next_random();
 
     uint32_t c =
         (sid_song_speed_ns(&sid, song_number) / (2000000000 / CLOCKFREQ));

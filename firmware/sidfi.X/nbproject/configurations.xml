@@ -13,6 +13,7 @@
       <itemPath>gfx.h</itemPath>
       <itemPath>st7735s.h</itemPath>
       <itemPath>st7735s_compat.h</itemPath>
+      <itemPath>cpu.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -24,12 +25,13 @@
       <itemPath>diskio.c</itemPath>
       <itemPath>ff.c</itemPath>
       <itemPath>ffunicode.c</itemPath>
-      <itemPath>main.cpp</itemPath>
       <itemPath>mos6502.cpp</itemPath>
       <itemPath>fonts.c</itemPath>
       <itemPath>gfx.c</itemPath>
       <itemPath>st7735s.c</itemPath>
       <itemPath>st7735s_compat.c</itemPath>
+      <itemPath>main.c</itemPath>
+      <itemPath>cpu.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -153,7 +155,7 @@
         <property key="generate-16-bit-code" value="false"/>
         <property key="generate-cross-reference-file" value="false"/>
         <property key="generate-micro-compressed-code" value="false"/>
-        <property key="heap-size" value=""/>
+        <property key="heap-size" value="256"/>
         <property key="input-libraries" value=""/>
         <property key="kseg-length" value=""/>
         <property key="kseg-origin" value=""/>
@@ -168,7 +170,7 @@
         <property key="report-memory-usage" value="false"/>
         <property key="serial-length" value=""/>
         <property key="serial-origin" value=""/>
-        <property key="stack-size" value="1024"/>
+        <property key="stack-size" value="256"/>
         <property key="symbol-stripping" value=""/>
         <property key="trace-symbols" value=""/>
         <property key="warn-section-align" value="false"/>

@@ -24,10 +24,18 @@
 #define MMC_WP		0		/* Write protected (yes:true, no:false, default:false) */
 
 /* SPI bit rate controls */
-#define	FCLK_SLOW()			/* Set slow clock for card initialization (100k-400k) */
-#define	FCLK_FAST()			/* Set fast clock for generic read/write */
 
+/* Set slow clock for card initialization (100k-400k) */
+#define FCLK_SLOW()                                                                \
+	SpiChnOpen(SPI_CHANNEL1,                                                       \
+			   (SpiOpenFlags)(SPI_OPEN_MODE8 | SPI_OPEN_MSTEN | SPI_OPEN_CKE_REV), \
+			   125);
 
+/* Set fast clock for generic read/write */
+#define FCLK_FAST()                                                                \
+	SpiChnOpen(SPI_CHANNEL1,                                                       \
+			   (SpiOpenFlags)(SPI_OPEN_MODE8 | SPI_OPEN_MSTEN | SPI_OPEN_CKE_REV), \
+			   4);
 
 /*--------------------------------------------------------------------------
 

@@ -57,17 +57,17 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Source Files Quoted if spaced
-SOURCEFILES_QUOTED_IF_SPACED=diskio.c ff.c ffunicode.c main.cpp mos6502.cpp fonts.c gfx.c st7735s.c st7735s_compat.c
+SOURCEFILES_QUOTED_IF_SPACED=diskio.c ff.c ffunicode.c mos6502.cpp fonts.c gfx.c st7735s.c st7735s_compat.c main.c cpu.cpp
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/diskio.o ${OBJECTDIR}/ff.o ${OBJECTDIR}/ffunicode.o ${OBJECTDIR}/main.o ${OBJECTDIR}/mos6502.o ${OBJECTDIR}/fonts.o ${OBJECTDIR}/gfx.o ${OBJECTDIR}/st7735s.o ${OBJECTDIR}/st7735s_compat.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/diskio.o.d ${OBJECTDIR}/ff.o.d ${OBJECTDIR}/ffunicode.o.d ${OBJECTDIR}/main.o.d ${OBJECTDIR}/mos6502.o.d ${OBJECTDIR}/fonts.o.d ${OBJECTDIR}/gfx.o.d ${OBJECTDIR}/st7735s.o.d ${OBJECTDIR}/st7735s_compat.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/diskio.o ${OBJECTDIR}/ff.o ${OBJECTDIR}/ffunicode.o ${OBJECTDIR}/mos6502.o ${OBJECTDIR}/fonts.o ${OBJECTDIR}/gfx.o ${OBJECTDIR}/st7735s.o ${OBJECTDIR}/st7735s_compat.o ${OBJECTDIR}/main.o ${OBJECTDIR}/cpu.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/diskio.o.d ${OBJECTDIR}/ff.o.d ${OBJECTDIR}/ffunicode.o.d ${OBJECTDIR}/mos6502.o.d ${OBJECTDIR}/fonts.o.d ${OBJECTDIR}/gfx.o.d ${OBJECTDIR}/st7735s.o.d ${OBJECTDIR}/st7735s_compat.o.d ${OBJECTDIR}/main.o.d ${OBJECTDIR}/cpu.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/diskio.o ${OBJECTDIR}/ff.o ${OBJECTDIR}/ffunicode.o ${OBJECTDIR}/main.o ${OBJECTDIR}/mos6502.o ${OBJECTDIR}/fonts.o ${OBJECTDIR}/gfx.o ${OBJECTDIR}/st7735s.o ${OBJECTDIR}/st7735s_compat.o
+OBJECTFILES=${OBJECTDIR}/diskio.o ${OBJECTDIR}/ff.o ${OBJECTDIR}/ffunicode.o ${OBJECTDIR}/mos6502.o ${OBJECTDIR}/fonts.o ${OBJECTDIR}/gfx.o ${OBJECTDIR}/st7735s.o ${OBJECTDIR}/st7735s_compat.o ${OBJECTDIR}/main.o ${OBJECTDIR}/cpu.o
 
 # Source Files
-SOURCEFILES=diskio.c ff.c ffunicode.c main.cpp mos6502.cpp fonts.c gfx.c st7735s.c st7735s_compat.c
+SOURCEFILES=diskio.c ff.c ffunicode.c mos6502.cpp fonts.c gfx.c st7735s.c st7735s_compat.c main.c cpu.cpp
 
 
 
@@ -149,6 +149,12 @@ ${OBJECTDIR}/st7735s_compat.o: st7735s_compat.c  .generated_files/15334f7755060a
 	@${RM} ${OBJECTDIR}/st7735s_compat.o 
 	${MP_CPPC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG   -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/st7735s_compat.o.d" -o ${OBJECTDIR}/st7735s_compat.o st7735s_compat.c    -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)  -std=gnu99 -mdfp="${DFP_DIR}"  
 	
+${OBJECTDIR}/main.o: main.c  .generated_files/46a415a5bea7102b1c0f3472ec87bddfde7f0d81.flag .generated_files/71b2fa7f85a22426d8b136d9a94b6b5776fdc3b0.flag
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/main.o.d 
+	@${RM} ${OBJECTDIR}/main.o 
+	${MP_CPPC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG   -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/main.o.d" -o ${OBJECTDIR}/main.o main.c    -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)  -std=gnu99 -mdfp="${DFP_DIR}"  
+	
 else
 ${OBJECTDIR}/diskio.o: diskio.c  .generated_files/2cf4e851fb833de05810aaf7165396a4703050b3.flag .generated_files/71b2fa7f85a22426d8b136d9a94b6b5776fdc3b0.flag
 	@${MKDIR} "${OBJECTDIR}" 
@@ -192,35 +198,41 @@ ${OBJECTDIR}/st7735s_compat.o: st7735s_compat.c  .generated_files/aef7b293735795
 	@${RM} ${OBJECTDIR}/st7735s_compat.o 
 	${MP_CPPC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/st7735s_compat.o.d" -o ${OBJECTDIR}/st7735s_compat.o st7735s_compat.c    -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)  -std=gnu99 -mdfp="${DFP_DIR}"  
 	
+${OBJECTDIR}/main.o: main.c  .generated_files/5555db660a63232d9f3764b028c123f2cc8c516d.flag .generated_files/71b2fa7f85a22426d8b136d9a94b6b5776fdc3b0.flag
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/main.o.d 
+	@${RM} ${OBJECTDIR}/main.o 
+	${MP_CPPC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/main.o.d" -o ${OBJECTDIR}/main.o main.c    -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)  -std=gnu99 -mdfp="${DFP_DIR}"  
+	
 endif
 
 # ------------------------------------------------------------------------------------
 # Rules for buildStep: compileCPP
 ifeq ($(TYPE_IMAGE), DEBUG_RUN)
-${OBJECTDIR}/main.o: main.cpp  .generated_files/881d7147207bab0881ffe07368363708bf7eb380.flag .generated_files/71b2fa7f85a22426d8b136d9a94b6b5776fdc3b0.flag
-	@${MKDIR} "${OBJECTDIR}" 
-	@${RM} ${OBJECTDIR}/main.o.d 
-	@${RM} ${OBJECTDIR}/main.o 
-	${MP_CPPC} $(MP_EXTRA_CC_PRE) -g -D__DEBUG   -fframe-base-loclist  -x c++ -c -mprocessor=$(MP_PROCESSOR_OPTION)  -frtti -fexceptions -fno-check-new -fenforce-eh-specs -MP -MMD -MF "${OBJECTDIR}/main.o.d" -o ${OBJECTDIR}/main.o main.cpp   -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)  -mdfp="${DFP_DIR}"  
-	
 ${OBJECTDIR}/mos6502.o: mos6502.cpp  .generated_files/d9539076330ffd620b22eb6194343e9633359874.flag .generated_files/71b2fa7f85a22426d8b136d9a94b6b5776fdc3b0.flag
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/mos6502.o.d 
 	@${RM} ${OBJECTDIR}/mos6502.o 
 	${MP_CPPC} $(MP_EXTRA_CC_PRE) -g -D__DEBUG   -fframe-base-loclist  -x c++ -c -mprocessor=$(MP_PROCESSOR_OPTION)  -frtti -fexceptions -fno-check-new -fenforce-eh-specs -MP -MMD -MF "${OBJECTDIR}/mos6502.o.d" -o ${OBJECTDIR}/mos6502.o mos6502.cpp   -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)  -mdfp="${DFP_DIR}"  
 	
-else
-${OBJECTDIR}/main.o: main.cpp  .generated_files/7da868e482a998ff6d5ead428618cd66f0a195b7.flag .generated_files/71b2fa7f85a22426d8b136d9a94b6b5776fdc3b0.flag
+${OBJECTDIR}/cpu.o: cpu.cpp  .generated_files/133e9335c4b9ef9dabb30c2e5353c99b47763ee9.flag .generated_files/71b2fa7f85a22426d8b136d9a94b6b5776fdc3b0.flag
 	@${MKDIR} "${OBJECTDIR}" 
-	@${RM} ${OBJECTDIR}/main.o.d 
-	@${RM} ${OBJECTDIR}/main.o 
-	${MP_CPPC} $(MP_EXTRA_CC_PRE)  -g -x c++ -c -mprocessor=$(MP_PROCESSOR_OPTION)  -frtti -fexceptions -fno-check-new -fenforce-eh-specs -MP -MMD -MF "${OBJECTDIR}/main.o.d" -o ${OBJECTDIR}/main.o main.cpp   -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)  -mdfp="${DFP_DIR}"  
+	@${RM} ${OBJECTDIR}/cpu.o.d 
+	@${RM} ${OBJECTDIR}/cpu.o 
+	${MP_CPPC} $(MP_EXTRA_CC_PRE) -g -D__DEBUG   -fframe-base-loclist  -x c++ -c -mprocessor=$(MP_PROCESSOR_OPTION)  -frtti -fexceptions -fno-check-new -fenforce-eh-specs -MP -MMD -MF "${OBJECTDIR}/cpu.o.d" -o ${OBJECTDIR}/cpu.o cpu.cpp   -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)  -mdfp="${DFP_DIR}"  
 	
+else
 ${OBJECTDIR}/mos6502.o: mos6502.cpp  .generated_files/a77e2ca44ae7e39593a31975b9b99eb938b09377.flag .generated_files/71b2fa7f85a22426d8b136d9a94b6b5776fdc3b0.flag
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/mos6502.o.d 
 	@${RM} ${OBJECTDIR}/mos6502.o 
 	${MP_CPPC} $(MP_EXTRA_CC_PRE)  -g -x c++ -c -mprocessor=$(MP_PROCESSOR_OPTION)  -frtti -fexceptions -fno-check-new -fenforce-eh-specs -MP -MMD -MF "${OBJECTDIR}/mos6502.o.d" -o ${OBJECTDIR}/mos6502.o mos6502.cpp   -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)  -mdfp="${DFP_DIR}"  
+	
+${OBJECTDIR}/cpu.o: cpu.cpp  .generated_files/55eec4da1b3b8fa1e535b12ee2f8585b1f6d077c.flag .generated_files/71b2fa7f85a22426d8b136d9a94b6b5776fdc3b0.flag
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/cpu.o.d 
+	@${RM} ${OBJECTDIR}/cpu.o 
+	${MP_CPPC} $(MP_EXTRA_CC_PRE)  -g -x c++ -c -mprocessor=$(MP_PROCESSOR_OPTION)  -frtti -fexceptions -fno-check-new -fenforce-eh-specs -MP -MMD -MF "${OBJECTDIR}/cpu.o.d" -o ${OBJECTDIR}/cpu.o cpu.cpp   -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)  -mdfp="${DFP_DIR}"  
 	
 endif
 
@@ -229,12 +241,12 @@ endif
 ifeq ($(TYPE_IMAGE), DEBUG_RUN)
 dist/${CND_CONF}/${IMAGE_TYPE}/sidfi.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES}  nbproject/Makefile-${CND_CONF}.mk    
 	@${MKDIR} dist/${CND_CONF}/${IMAGE_TYPE} 
-	${MP_CPPC} $(MP_EXTRA_LD_PRE) -g   -mprocessor=$(MP_PROCESSOR_OPTION)  -o dist/${CND_CONF}/${IMAGE_TYPE}/sidfi.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX} ${OBJECTFILES_QUOTED_IF_SPACED}          -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)   -mreserve=data@0x0:0x1FC -mreserve=boot@0x1FC00490:0x1FC00BEF  -Wl,--defsym=__MPLAB_BUILD=1$(MP_EXTRA_LD_POST)$(MP_LINKER_FILE_OPTION),--defsym=__MPLAB_DEBUG=1,--defsym=__DEBUG=1,-D=__DEBUG_D,--defsym=_min_stack_size=1024,--no-code-in-dinit,--no-dinit-in-serial-mem,-Map="${DISTDIR}/${PROJECTNAME}.${IMAGE_TYPE}.map",--memorysummary,dist/${CND_CONF}/${IMAGE_TYPE}/memoryfile.xml,--allow-multiple-definition -mdfp="${DFP_DIR}"
+	${MP_CPPC} $(MP_EXTRA_LD_PRE) -g   -mprocessor=$(MP_PROCESSOR_OPTION)  -o dist/${CND_CONF}/${IMAGE_TYPE}/sidfi.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX} ${OBJECTFILES_QUOTED_IF_SPACED}          -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)   -mreserve=data@0x0:0x1FC -mreserve=boot@0x1FC00490:0x1FC00BEF  -Wl,--defsym=__MPLAB_BUILD=1$(MP_EXTRA_LD_POST)$(MP_LINKER_FILE_OPTION),--defsym=__MPLAB_DEBUG=1,--defsym=__DEBUG=1,-D=__DEBUG_D,--defsym=_min_heap_size=256,--defsym=_min_stack_size=256,--no-code-in-dinit,--no-dinit-in-serial-mem,-Map="${DISTDIR}/${PROJECTNAME}.${IMAGE_TYPE}.map",--memorysummary,dist/${CND_CONF}/${IMAGE_TYPE}/memoryfile.xml,--allow-multiple-definition -mdfp="${DFP_DIR}"
 	
 else
 dist/${CND_CONF}/${IMAGE_TYPE}/sidfi.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES}  nbproject/Makefile-${CND_CONF}.mk   
 	@${MKDIR} dist/${CND_CONF}/${IMAGE_TYPE} 
-	${MP_CPPC} $(MP_EXTRA_LD_PRE)  -mprocessor=$(MP_PROCESSOR_OPTION)  -o dist/${CND_CONF}/${IMAGE_TYPE}/sidfi.X.${IMAGE_TYPE}.${DEBUGGABLE_SUFFIX} ${OBJECTFILES_QUOTED_IF_SPACED}          -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)  -Wl,--defsym=__MPLAB_BUILD=1$(MP_EXTRA_LD_POST)$(MP_LINKER_FILE_OPTION),--defsym=_min_stack_size=1024,--no-code-in-dinit,--no-dinit-in-serial-mem,-Map="${DISTDIR}/${PROJECTNAME}.${IMAGE_TYPE}.map",--memorysummary,dist/${CND_CONF}/${IMAGE_TYPE}/memoryfile.xml,--allow-multiple-definition -mdfp="${DFP_DIR}"
+	${MP_CPPC} $(MP_EXTRA_LD_PRE)  -mprocessor=$(MP_PROCESSOR_OPTION)  -o dist/${CND_CONF}/${IMAGE_TYPE}/sidfi.X.${IMAGE_TYPE}.${DEBUGGABLE_SUFFIX} ${OBJECTFILES_QUOTED_IF_SPACED}          -DXPRJ_default=$(CND_CONF)  $(COMPARISON_BUILD)  -Wl,--defsym=__MPLAB_BUILD=1$(MP_EXTRA_LD_POST)$(MP_LINKER_FILE_OPTION),--defsym=_min_heap_size=256,--defsym=_min_stack_size=256,--no-code-in-dinit,--no-dinit-in-serial-mem,-Map="${DISTDIR}/${PROJECTNAME}.${IMAGE_TYPE}.map",--memorysummary,dist/${CND_CONF}/${IMAGE_TYPE}/memoryfile.xml,--allow-multiple-definition -mdfp="${DFP_DIR}"
 	${MP_CC_DIR}/xc32-bin2hex dist/${CND_CONF}/${IMAGE_TYPE}/sidfi.X.${IMAGE_TYPE}.${DEBUGGABLE_SUFFIX} 
 endif
 

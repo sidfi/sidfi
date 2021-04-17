@@ -166,8 +166,8 @@ static bool is_header(const uint8_t *data) {
   return magic_id == 0x50534944 && (version == 1 || version == 2);
 }
 
-#define FILE_READ_BUFFER_SIZE 512
-uint8_t file_read_buffer[FILE_READ_BUFFER_SIZE];
+#define SID_READ_BUFFER_SIZE 512
+uint8_t sid_read_buffer[SID_READ_BUFFER_SIZE];
 
 enum sid_result sid_read_file(struct sid *sid, const TCHAR *file_path) {
   FIL f;
@@ -247,10 +247,10 @@ enum sid_result sid_read_file(struct sid *sid, const TCHAR *file_path) {
   size_t address = sid->load_address;
 
   do {
-    fr = f_read(&f, file_read_buffer, FILE_READ_BUFFER_SIZE, &read);
+    fr = f_read(&f, sid_read_buffer, SID_READ_BUFFER_SIZE, &read);
 
     for (size_t i = 0; i < read; ++i) {
-      if (!memory_write(address + i, file_read_buffer[i]))
+      if (!memory_write(address + i, sid_read_buffer[i]))
         return SIDFILE_ERROR_TOOBIG;
     }
 
@@ -319,17 +319,21 @@ uint32_t song_lengths_parse_value(
 enum song_lengths_res
 song_lengths_read_line(uint8_t *line, const TCHAR *sid_file_path,
                        struct song_lengths *song_lengths) {
-  static int cmp_res = -1;
+  static int last_strcmp_res = -1;
   if (line[0] == ';') {
-    cmp_res = strcmp(&line[2], sid_file_path);
-  } else if (cmp_res == 0) {
-    cmp_res = -1;
+    last_strcmp_res = strcmp(&line[2], sid_file_path);
+  } else if (last_strcmp_res == 0) {
+    last_strcmp_res = -1;
+
     size_t l = strlen(line);
     size_t k = 0;
+
     enum song_lengths_parse_state parse_state = SONG_LENGTHS_PARSE_STATE_NONE;
     uint32_t parse_digits[SONG_LENGTHS_PARSE_VALUE_MAX_DIGITS];
+
     song_lengths->num = 0;
     song_lengths->ms[0] = 0;
+
     for (size_t i = 0; i < l; i++) {
       if (line[i] == '=') {
         parse_state = SONG_LENGTHS_PARSE_STATE_MINUTES;
@@ -375,25 +379,28 @@ song_lengths_read_line(uint8_t *line, const TCHAR *sid_file_path,
   return SONG_LENGTHS_NOT_FOUND;
 }
 
+#define SONG_LENGTHS_READ_BUFFER_SIZE 512
+uint8_t song_lengths_read_buffer[SONG_LENGTHS_READ_BUFFER_SIZE];
+
+FIL song_lengths_file;
+
+void song_lengths_open_file(const TCHAR *song_lengths_file_path) {
+  f_open(&song_lengths_file, song_lengths_file_path, FA_READ);
+}
+
 enum song_lengths_res
-song_lengths_read_file(const TCHAR *song_lengths_file_path,
-                       const TCHAR *sid_file_path,
+song_lengths_find_in_file(const TCHAR *sid_file_path,
                        struct song_lengths *song_lengths) {
-  FIL f;
-  FRESULT fr = f_open(&f, song_lengths_file_path, FA_READ);
-  if (fr != FR_OK) {
-    return SONG_LENGTHS_ERROR_IO;
-  }
+  static uint8_t line_buffer[SONG_LENGTHS_LINE_BUFFER_SIZE];
+  static UINT read = 0;
 
   size_t i = 0;
-  static uint8_t line_buffer[SONG_LENGTHS_LINE_BUFFER_SIZE];
-  UINT read;
-  do {
-    fr = f_read(&f, file_read_buffer, FILE_READ_BUFFER_SIZE, &read);
+  FRESULT fr;
 
-    size_t k = 0;
+  do {
+    static size_t k = 0;
     while (k != read) {
-      uint8_t c = file_read_buffer[k++];
+      uint8_t c = song_lengths_read_buffer[k++];
       if (c == '\n' || c == '\r' || i == SONG_LENGTHS_LINE_BUFFER_SIZE - 1) {
         if (i == 0)
           continue;
@@ -408,13 +415,18 @@ song_lengths_read_file(const TCHAR *song_lengths_file_path,
         line_buffer[i++] = c;
     }
 
-    if (fr != FR_OK) {
-      f_close(&f);
+    k = 0;
+    fr = f_read(&song_lengths_file, song_lengths_read_buffer, SONG_LENGTHS_READ_BUFFER_SIZE, &read);
+    if (fr != FR_OK)
       return SONG_LENGTHS_ERROR_IO;
-    }
+
   } while (read != 0);
 
-  f_close(&f);
+  fr = f_lseek(&song_lengths_file, 0);
+
+  if (fr != FR_OK)
+    return SONG_LENGTHS_ERROR_IO;
+
   return SONG_LENGTHS_NOT_FOUND;
 }
 
@@ -468,70 +480,72 @@ uint32_t next_random() {
   return random;
 }
 
-static char path_buffer[1024];
-static size_t dir_index = -1;
-static DIR dirs[6];
+static char next_file_path_buffer[1024];
+static size_t next_file_path_dir_index = -1;
+static DIR next_file_path_dirs[6];
 
-static FRESULT get_next_file_path(char **path) {
+static FRESULT next_file_path_get(char **path) {
   FRESULT res;
   FILINFO fno;
   static size_t slash_pos[6];
 
-  if (dir_index == -1) {
-    dir_index++;
+  if (next_file_path_dir_index == -1) {
+    next_file_path_dir_index++;
 
-    res = f_opendir(&dirs[dir_index], path_buffer); /* Open the directory */
+    res = f_opendir(&next_file_path_dirs[next_file_path_dir_index],
+                    next_file_path_buffer); /* Open the directory */
     if (res != FR_OK)
       return res;
 
-    slash_pos[dir_index] = -1;
+    slash_pos[next_file_path_dir_index] = -1;
   }
 
-  if (slash_pos[dir_index] != -1)
-    path_buffer[slash_pos[dir_index]] = 0;
+  if (slash_pos[next_file_path_dir_index] != -1)
+    next_file_path_buffer[slash_pos[next_file_path_dir_index]] = 0;
 
-  res = f_readdir(&dirs[dir_index], &fno);
+  res = f_readdir(&next_file_path_dirs[next_file_path_dir_index], &fno);
   if (res != FR_OK)
     return res;
 
   if (!fno.fname[0]) {
-    slash_pos[dir_index] = -1;
+    slash_pos[next_file_path_dir_index] = -1;
 
-    f_closedir(&dirs[dir_index]);
+    f_closedir(&next_file_path_dirs[next_file_path_dir_index]);
 
-    dir_index--;
-    return get_next_file_path(path);
+    next_file_path_dir_index--;
+    return next_file_path_get(path);
   }
 
-  size_t l = strlen(path_buffer);
-  slash_pos[dir_index] = l;
+  size_t l = strlen(next_file_path_buffer);
+  slash_pos[next_file_path_dir_index] = l;
 
-  path_buffer[l] = '/';
-  strcpy(&path_buffer[l + 1], fno.fname);
+  next_file_path_buffer[l] = '/';
+  strcpy(&next_file_path_buffer[l + 1], fno.fname);
 
   if (fno.fattrib & AM_DIR) {
-    dir_index++;
+    next_file_path_dir_index++;
 
-    res = f_opendir(&dirs[dir_index], path_buffer); /* Open the directory */
+    res = f_opendir(&next_file_path_dirs[next_file_path_dir_index],
+                    next_file_path_buffer); /* Open the directory */
     if (res != FR_OK)
       return res;
 
-    slash_pos[dir_index] = -1;
+    slash_pos[next_file_path_dir_index] = -1;
 
-    return get_next_file_path(path);
+    return next_file_path_get(path);
   }
 
-  *path = path_buffer;
+  *path = next_file_path_buffer;
   return res;
 }
 
-static void init_file_path(const char *base_path) {
-  while (dir_index != -1) {
-    f_closedir(&dirs[dir_index]);
-    dir_index--;
+static void next_file_path_init(const char *base_path) {
+  while (next_file_path_dir_index != -1) {
+    f_closedir(&next_file_path_dirs[next_file_path_dir_index]);
+    next_file_path_dir_index--;
   }
 
-  strcpy(path_buffer, base_path);
+  strcpy(next_file_path_buffer, base_path);
 }
 
 static uint32_t break_timer0 = 0;
@@ -642,7 +656,8 @@ int main() {
   memory_init();
   cpu_init(cpu_memory_read, cpu_memory_write);
 
-  init_file_path("/DEMOS");
+  next_file_path_init("/DEMOS");
+  song_lengths_open_file("/DOCUMENTS/Songlengths.md5");
 
   struct sid sid;
   struct song_lengths song_lengths;
@@ -673,15 +688,14 @@ int main() {
           //uint32_t i = next_random() % 1000;          
 
           //while (i--)
-            fr = get_next_file_path(&sid_file_path);
+            fr = next_file_path_get(&sid_file_path);
             
           if (fr != FR_OK)
             continue;
 
           enum sid_result sidr = sid_read_file(&sid, sid_file_path);
           if (sidr == SIDFILE_OK) {
-            slr = song_lengths_read_file("/DOCUMENTS/Songlengths.md5",
-                                         sid_file_path, &song_lengths);
+            slr = song_lengths_find_in_file(sid_file_path, &song_lengths);
             song_number = 0;
             break;
           }

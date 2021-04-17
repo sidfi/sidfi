@@ -1,0 +1,4 @@
+device PIC32MX270F256B
+hwtool pickit4
+program dist/default/debug/sidfi.X.debug.elf
+run

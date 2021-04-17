@@ -1,0 +1,18 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/opt/microchip/xc32/v2.50/pic32mx/include/"
+            ],
+            "defines": [],
+            "compilerPath": "/opt/microchip/xc32/v2.50/bin/xc32-gcc",
+            "cStandard": "c99",
+            "cppStandard": "c++14",
+            "configurationProvider": "ms-vscode.makefile-tools",
+            "compilerArgs": ["-mprocessor=32MX270F256B"]
+        }
+    ],
+    "version": 4
+}

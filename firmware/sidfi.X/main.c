@@ -132,7 +132,7 @@ enum {
   PSID_RESERVED = 120
 };
 
-enum {
+enum sid_result {
   SIDFILE_OK,
   SIDFILE_ERROR_IO,
   SIDFILE_ERROR_MALFORMED,
@@ -169,7 +169,7 @@ static bool is_header(const uint8_t *data) {
 #define FILE_READ_BUFFER_SIZE 512
 uint8_t file_read_buffer[FILE_READ_BUFFER_SIZE];
 
-int sid_read_file(struct sid *sid, const TCHAR *file_path) {
+enum sid_result sid_read_file(struct sid *sid, const TCHAR *file_path) {
   FIL f;
   FRESULT fr = f_open(&f, file_path, FA_READ);
   if (fr != FR_OK) {
@@ -275,9 +275,13 @@ struct song_lengths {
 
 #define SONG_LENGTHS_LINE_BUFFER_SIZE 2048
 
-enum { SONG_LENGTHS_FOUND, SONG_LENGTHS_NOT_FOUND, SONG_LENGTHS_ERROR_IO };
+enum song_lengths_res {
+  SONG_LENGTHS_FOUND,
+  SONG_LENGTHS_NOT_FOUND,
+  SONG_LENGTHS_ERROR_IO
+};
 
-enum {
+enum song_lengths_parse_state {
   SONG_LENGTHS_PARSE_STATE_NONE,
   SONG_LENGTHS_PARSE_STATE_MINUTES,
   SONG_LENGTHS_PARSE_STATE_SECONDS,
@@ -285,7 +289,8 @@ enum {
 };
 
 void song_lengths_read_value(struct song_lengths *song_lengths, size_t i,
-                             int parse_state, int parse_value) {
+                             enum song_lengths_parse_state parse_state,
+                             uint32_t parse_value) {
   switch (parse_state) {
   case SONG_LENGTHS_PARSE_STATE_MINUTES:
     song_lengths->ms[i] += parse_value * 60000;
@@ -301,18 +306,19 @@ void song_lengths_read_value(struct song_lengths *song_lengths, size_t i,
 
 #define SONG_LENGTHS_PARSE_VALUE_MAX_DIGITS 3
 
-int song_lengths_parse_value(
-    size_t k, int parse_values[SONG_LENGTHS_PARSE_VALUE_MAX_DIGITS]) {
-  int parse_value = 0;
-  const int multiple[SONG_LENGTHS_PARSE_VALUE_MAX_DIGITS] = {1, 10, 100};
+uint32_t song_lengths_parse_value(
+    size_t k, uint32_t parse_digits[SONG_LENGTHS_PARSE_VALUE_MAX_DIGITS]) {
+  uint16_t parse_value = 0;
+  const uint32_t multiple[SONG_LENGTHS_PARSE_VALUE_MAX_DIGITS] = {1, 10, 100};
   for (size_t i = 0; i < k; i++) {
-    parse_value += parse_values[i] * multiple[k - i - 1];
+    parse_value += parse_digits[i] * multiple[k - i - 1];
   }
   return parse_value;
 }
 
-int song_lengths_read_line(uint8_t *line, const TCHAR *sid_file_path,
-                           struct song_lengths *song_lengths) {
+enum song_lengths_res
+song_lengths_read_line(uint8_t *line, const TCHAR *sid_file_path,
+                       struct song_lengths *song_lengths) {
   static int cmp_res = -1;
   if (line[0] == ';') {
     cmp_res = strcmp(&line[2], sid_file_path);
@@ -320,8 +326,8 @@ int song_lengths_read_line(uint8_t *line, const TCHAR *sid_file_path,
     cmp_res = -1;
     size_t l = strlen(line);
     size_t k = 0;
-    int parse_state = SONG_LENGTHS_PARSE_STATE_NONE;
-    int parse_values[SONG_LENGTHS_PARSE_VALUE_MAX_DIGITS];
+    enum song_lengths_parse_state parse_state = SONG_LENGTHS_PARSE_STATE_NONE;
+    uint32_t parse_digits[SONG_LENGTHS_PARSE_VALUE_MAX_DIGITS];
     song_lengths->num = 0;
     song_lengths->ms[0] = 0;
     for (size_t i = 0; i < l; i++) {
@@ -331,14 +337,14 @@ int song_lengths_read_line(uint8_t *line, const TCHAR *sid_file_path,
       } else if (parse_state == SONG_LENGTHS_PARSE_STATE_MINUTES &&
                  line[i] == ':') {
         song_lengths_read_value(song_lengths, song_lengths->num, parse_state,
-                                song_lengths_parse_value(k, parse_values));
+                                song_lengths_parse_value(k, parse_digits));
 
         parse_state = SONG_LENGTHS_PARSE_STATE_SECONDS;
         k = 0;
       } else if (parse_state == SONG_LENGTHS_PARSE_STATE_SECONDS &&
                  line[i] == '.') {
         song_lengths_read_value(song_lengths, song_lengths->num, parse_state,
-                                song_lengths_parse_value(k, parse_values));
+                                song_lengths_parse_value(k, parse_digits));
 
         parse_state = SONG_LENGTHS_PARSE_STATE_MS;
         k = 0;
@@ -347,7 +353,7 @@ int song_lengths_read_line(uint8_t *line, const TCHAR *sid_file_path,
           break;
 
         song_lengths_read_value(song_lengths, song_lengths->num, parse_state,
-                                song_lengths_parse_value(k, parse_values));
+                                song_lengths_parse_value(k, parse_digits));
         song_lengths->num++;
 
         song_lengths->ms[song_lengths->num] = 0;
@@ -356,12 +362,12 @@ int song_lengths_read_line(uint8_t *line, const TCHAR *sid_file_path,
         k = 0;
       } else if (line[i] >= '0' && line[i] <= '9' &&
                  k < SONG_LENGTHS_PARSE_VALUE_MAX_DIGITS) {
-        parse_values[k] = (line[i] - 0x30);
+        parse_digits[k] = (line[i] - 0x30);
         k++;
       }
     }
     song_lengths_read_value(song_lengths, song_lengths->num, parse_state,
-                            song_lengths_parse_value(k, parse_values));
+                            song_lengths_parse_value(k, parse_digits));
     song_lengths->num++;
 
     return SONG_LENGTHS_FOUND;
@@ -369,9 +375,10 @@ int song_lengths_read_line(uint8_t *line, const TCHAR *sid_file_path,
   return SONG_LENGTHS_NOT_FOUND;
 }
 
-int song_lengths_read_file(const TCHAR *song_lengths_file_path,
-                           const TCHAR *sid_file_path,
-                           struct song_lengths *song_lengths) {
+enum song_lengths_res
+song_lengths_read_file(const TCHAR *song_lengths_file_path,
+                       const TCHAR *sid_file_path,
+                       struct song_lengths *song_lengths) {
   FIL f;
   FRESULT fr = f_open(&f, song_lengths_file_path, FA_READ);
   if (fr != FR_OK) {
@@ -455,8 +462,8 @@ void __ISR(_TIMER_4_VECTOR, ipl1auto) T4Interrupt(void) {
   mT4ClearIntFlag();
 }
 
-unsigned int next_random() {
-  static unsigned int random = 0;
+uint32_t next_random() {
+  static uint32_t random = 0;
   random += ReadCoreTimer();
   return random;
 }
@@ -622,6 +629,8 @@ int main() {
                             SPI_OPEN_CKE_REV),
              2);
 
+  next_random();
+
   ST7735S_Init();
   setOrientation(R0);
 
@@ -633,61 +642,76 @@ int main() {
   memory_init();
   cpu_init(cpu_memory_read, cpu_memory_write);
 
-  init_file_path("/MUSICIANS");
+  init_file_path("/DEMOS");
 
   struct sid sid;
+  struct song_lengths song_lengths;
+  
+  memset(&sid, 0, sizeof(struct sid));
+  memset(&song_lengths, 0, sizeof(struct song_lengths));
+  
   uint32_t timer = 0;
   uint8_t song_number = 0;
   uint32_t song_speed_ns = 0;
   uint32_t song_length_ms = 0;
   uint8_t debounce_counter = 0;
   uint8_t prev_scancode = 1;
+  enum song_lengths_res slr = 0;
 
   while (1) {
     if (!timer) {
-      setColor(31, 63, 31);
-      fillScreen();
-      setColor(0, 63, 0);
-      drawText(0, 0, "Loading...");
-      flushBuffer();
+      if (!sid.num_of_songs || ++song_number == sid.num_of_songs) {
+        setColor(31, 63, 31);
+        fillScreen();
+        setColor(0, 63, 0);
+        drawText(0, 0, "Loading...");
+        flushBuffer();
 
-      while (1) {
-        char *sid_file_path;
-        FRESULT fr = get_next_file_path(&sid_file_path);
-        if (fr != FR_OK)
-          continue;
+        while (1) {
+          char *sid_file_path;
+          FRESULT fr;
+          //uint32_t i = next_random() % 1000;          
 
-        int sidr = sid_read_file(&sid, sid_file_path);
-        if (sidr == SIDFILE_OK) {
-          struct song_lengths song_lengths;
-          int slr = song_lengths_read_file("/DOCUMENTS/Songlengths.md5",
-                                           sid_file_path, &song_lengths);
-          song_length_ms =
-              ((slr == SONG_LENGTHS_FOUND && song_number < song_lengths.num)
-                   ? song_lengths.ms[song_number]
-                   : 60000);
-          song_speed_ns = sid_song_speed_ns(&sid, song_number);
-          timer = (song_length_ms * 1000) / (song_speed_ns / 1000);
+          //while (i--)
+            fr = get_next_file_path(&sid_file_path);
+            
+          if (fr != FR_OK)
+            continue;
 
-          sid_init_player(&sid, song_number);
-
-          set_break_ns(1000000, 0);
-          cpu_reset();
-          cpu_run(should_break0);
-
-          setColor(0, 0, 31);
-          uint16_t line = 0;
-          size_t len = strlen(sid_file_path);
-          for (size_t i = 0; i <= len / 16; i++)
-            drawText(0, (line++) * 16, sid_file_path + (i * 16));
-          drawText(0, (line++) * 16, sid.module_name);
-          drawText(0, (line++) * 16, sid.author_name);
-          drawText(0, (line++) * 16, sid.copyright_info);
-          flushBuffer();
-
-          break;
+          enum sid_result sidr = sid_read_file(&sid, sid_file_path);
+          if (sidr == SIDFILE_OK) {
+            slr = song_lengths_read_file("/DOCUMENTS/Songlengths.md5",
+                                         sid_file_path, &song_lengths);
+            song_number = 0;
+            break;
+          }
         }
       }
+      song_length_ms =
+          ((slr == SONG_LENGTHS_FOUND && song_number < song_lengths.num)
+               ? song_lengths.ms[song_number]
+               : 60000);
+      song_speed_ns = sid_song_speed_ns(&sid, song_number);
+      timer = (song_length_ms * 1000) / (song_speed_ns / 1000);
+
+      sid_init_player(&sid, song_number);
+
+      set_break_ns(1000000, 0);
+      cpu_reset();
+      cpu_run(should_break0);
+
+      setColor(31, 63, 31);
+      fillScreen();
+      setColor(0, 0, 31);
+      uint16_t line = 0;
+      /*size_t len = strlen(sid_file_path);
+      for (size_t i = 0; i <= len / 16; i++)
+        drawText(0, (line++) * 16, sid_file_path + (i * 16));*/
+      drawText(0, (line++) * 16, sid.module_name);
+      drawText(0, (line++) * 16, itoa(song_number));
+      drawText(0, (line++) * 16, sid.author_name);
+      drawText(0, (line++) * 16, sid.copyright_info);
+      flushBuffer();
     } else
       timer--;
 

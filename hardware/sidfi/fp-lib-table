@@ -1,0 +1,3 @@
+(fp_lib_table
+  (lib (name sidfi)(type KiCad)(uri /home/peter/Projects/sidfi/hardware/sidfi)(options "")(descr ""))
+)

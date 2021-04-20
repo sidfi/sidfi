@@ -68,7 +68,8 @@ static bool memory_virtual_to_physical(uint16_t v_address,
 
 static bool memory_write(uint16_t address, uint8_t data) {
   bool res = memory_virtual_to_physical(address, &address);
-  memory[address] = data;
+  if (res)
+    memory[address] = data;
   return res;
 }
 

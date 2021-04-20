@@ -1,3 +1,3 @@
 # SIDfi
 
-![PCB](/hardware/sidif/sidif.png)
+![PCB](/hardware/sidfi/sidfi.png)

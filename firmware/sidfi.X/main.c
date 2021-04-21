@@ -481,72 +481,87 @@ uint32_t next_random() {
   return random;
 }
 
-static char next_file_path_buffer[1024];
-static size_t next_file_path_dir_index = -1;
-static DIR next_file_path_dirs[6];
+static char traverse_files_buffer[1024];
+static size_t traverse_files_dir_index = -1;
+static DIR traverse_files_dirs[6];
 
-static FRESULT next_file_path_get(char **path) {
+static FRESULT traverse_files_open_dir() {
+  FRESULT res;
+  res = f_opendir(&traverse_files_dirs[traverse_files_dir_index + 1],
+                  traverse_files_buffer); /* Open the directory */
+  if (res != FR_OK)
+    return res;
+
+  traverse_files_dir_index++;
+
+  return res;
+}
+
+static void traverse_files_close_dir() {
+  f_closedir(&traverse_files_dirs[traverse_files_dir_index]);
+
+  traverse_files_dir_index--;
+}
+
+static FRESULT traverse_files_next(char **path) {
   FRESULT res;
   FILINFO fno;
   static size_t slash_pos[6];
 
-  if (next_file_path_dir_index == -1) {
-    next_file_path_dir_index++;
+  if (traverse_files_dir_index == -1) {
+    res = traverse_files_open_dir();
 
-    res = f_opendir(&next_file_path_dirs[next_file_path_dir_index],
-                    next_file_path_buffer); /* Open the directory */
     if (res != FR_OK)
       return res;
 
-    slash_pos[next_file_path_dir_index] = -1;
+    slash_pos[traverse_files_dir_index] = -1;
+
+    return traverse_files_next(path);
   }
 
-  if (slash_pos[next_file_path_dir_index] != -1)
-    next_file_path_buffer[slash_pos[next_file_path_dir_index]] = 0;
+  if (slash_pos[traverse_files_dir_index] != -1) {
+    traverse_files_buffer[slash_pos[traverse_files_dir_index]] = 0;
+    slash_pos[traverse_files_dir_index] = -1;
+  }
 
-  res = f_readdir(&next_file_path_dirs[next_file_path_dir_index], &fno);
+  res = f_readdir(&traverse_files_dirs[traverse_files_dir_index], &fno);
   if (res != FR_OK)
     return res;
 
   if (!fno.fname[0]) {
-    slash_pos[next_file_path_dir_index] = -1;
+    traverse_files_close_dir();
 
-    f_closedir(&next_file_path_dirs[next_file_path_dir_index]);
-
-    next_file_path_dir_index--;
-    return next_file_path_get(path);
+    return traverse_files_next(path);
   }
 
-  size_t l = strlen(next_file_path_buffer);
-  slash_pos[next_file_path_dir_index] = l;
+  size_t l = strlen(traverse_files_buffer);
+  slash_pos[traverse_files_dir_index] = l;
 
-  next_file_path_buffer[l] = '/';
-  strcpy(&next_file_path_buffer[l + 1], fno.fname);
+  traverse_files_buffer[l] = '/';
+  strcpy(&traverse_files_buffer[l + 1], fno.fname);
 
   if (fno.fattrib & AM_DIR) {
-    next_file_path_dir_index++;
+    res = traverse_files_open_dir();
 
-    res = f_opendir(&next_file_path_dirs[next_file_path_dir_index],
-                    next_file_path_buffer); /* Open the directory */
     if (res != FR_OK)
       return res;
 
-    slash_pos[next_file_path_dir_index] = -1;
+    slash_pos[traverse_files_dir_index] = -1;
 
-    return next_file_path_get(path);
+    return traverse_files_next(path);
   }
 
-  *path = next_file_path_buffer;
+  *path = traverse_files_buffer;
   return res;
 }
 
-static void next_file_path_init(const char *base_path) {
-  while (next_file_path_dir_index != -1) {
-    f_closedir(&next_file_path_dirs[next_file_path_dir_index]);
-    next_file_path_dir_index--;
+static void traverse_files_init(const char *base_path) {
+  while (traverse_files_dir_index != -1) {
+    f_closedir(&traverse_files_dirs[traverse_files_dir_index]);
+    traverse_files_dir_index--;
   }
 
-  strcpy(next_file_path_buffer, base_path);
+  strcpy(traverse_files_buffer, base_path);
 }
 
 static uint32_t break_timer0 = 0;
@@ -644,8 +659,6 @@ int main() {
                             SPI_OPEN_CKE_REV),
              2);
 
-  next_random();
-
   ST7735S_Init();
   setOrientation(R0);
 
@@ -657,8 +670,10 @@ int main() {
   memory_init();
   cpu_init(cpu_memory_read, cpu_memory_write);
 
-  next_file_path_init("/DEMOS");
+  traverse_files_init("");
   song_lengths_open_file("/DOCUMENTS/Songlengths.md5");
+
+  next_random();
 
   struct sid sid;
   struct song_lengths song_lengths;
@@ -686,10 +701,10 @@ int main() {
         while (1) {
           char *sid_file_path;
           FRESULT fr;
-          //uint32_t i = next_random() % 1000;          
+          uint32_t i = next_random() % 10000;          
 
-          //while (i--)
-            fr = next_file_path_get(&sid_file_path);
+          while (i--)
+            fr = traverse_files_next(&sid_file_path);
             
           if (fr != FR_OK)
             continue;

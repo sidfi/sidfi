@@ -20,7 +20,7 @@
 /* Socket controls  (Platform dependent) */
 #define CS_LOW()	_LATB13 = 0	/* MMC CS = L */
 #define CS_HIGH()	_LATB13 = 1	/* MMC CS = H */
-#define MMC_CD		(_RB11)	/* Card detected   (yes:true, no:false, default:true) */
+#define MMC_CD		(!_RB11)	/* Card detected   (yes:true, no:false, default:true) */
 #define MMC_WP		0		/* Write protected (yes:true, no:false, default:false) */
 
 /* SPI bit rate controls */

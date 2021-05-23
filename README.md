@@ -1,6 +1,6 @@
 # SIDfi
 
-SIDfi is single-board self-contained SID file player. SIDfi requires the original MOS 6581 chip or a pin-compatible replacement such as [ARMSID](https://www.nobomi.cz/8bit/armsid/index_en.php). SIDfi plays tune files such as [High Voltage SID Collection](https://hvsc.c64.org/) from a FAT-formatted memory card and displays current tune information on a small LCD screen. Buttons on the LCD screen can be used to control the playback.
+SIDfi is a single-board self-contained SID file player. SIDfi requires the original MOS 6581 chip or a pin-compatible replacement such as [ARMSID](https://www.nobomi.cz/8bit/armsid/index_en.php). SIDfi plays tune files such as [High Voltage SID Collection](https://hvsc.c64.org/) from a FAT-formatted memory card and displays current tune information on a small LCD screen. Buttons on the LCD screen can be used to control the playback.
 
 ## Design
 

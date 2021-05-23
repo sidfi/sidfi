@@ -6,7 +6,8 @@ SIDfi is a single-board self-contained SID file player. SIDfi requires the origi
 
 ## Design Notes
 
-- Emulates MOS 6502 using PIC32MX270F256 microcontroller using [MOS6502 library](https://github.com/gianlucag/mos6502);
+- Emulates MOS 6502 on PIC32MX270F256 microcontroller using [MOS6502 library](https://github.com/gianlucag/mos6502);
+- Firmware built with Microchip MPLAB v5.45 and XC32 v2.50;
 - [Waveshare 1.44inch LCD HAT](https://www.waveshare.com/1.44inch-lcd-hat.htm) and [ST7735S library](https://github.com/bersch/ST7735S) for display and control;
 - [Waveshare Micro SD Storage Board](https://www.waveshare.com/micro-sd-storage-board.htm) and [FatFs library](http://www.elm-chan.org/fsw/ff/00index_e.html) for memory card support;
 - 2N3904 transistor for audio amplifier;
@@ -20,3 +21,5 @@ SIDfi is a single-board self-contained SID file player. SIDfi requires the origi
 ## PCB rendering
 
 ![PCB](/doc/pcb.png)
+
+![PCB reverse](/doc/pcb_reverse.png)

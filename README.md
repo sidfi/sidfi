@@ -13,6 +13,10 @@ SIDfi is a single-board self-contained SID file player. SIDfi requires the origi
 - Standard 3mm headset jack for audio output;
 - USB 2.0 Type-B connector for 5V power supply (consumes 300mA).
 
+## Schematics
+
+![Schematics](/doc/schematics.pdf)
+
 ## PCB rendering
 
-![PCB](/hardware/sidfi/sidfi.png)
+![PCB](/doc/pcb.png)
